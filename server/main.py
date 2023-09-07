@@ -29,7 +29,7 @@ async def api_create_todo(todo: ValidTodo, db: db_dependency):
         raise HTTPException(500)
 
 
-@app.get("/api/v1/user/")
+@app.get("/api/v1/user")
 async def api_user_info(user_id: int, db: db_dependency):
     try:
         result = await get_user_info(user_id, db)
@@ -40,7 +40,7 @@ async def api_user_info(user_id: int, db: db_dependency):
     return result
 
 
-@app.get("/api/v1/todo/")
+@app.get("/api/v1/todo")
 async def api_todo_info(todo_id: int, db: db_dependency):
     try:
         result = await get_todo_info(todo_id, db)
@@ -51,7 +51,7 @@ async def api_todo_info(todo_id: int, db: db_dependency):
     return result
 
 
-@app.get("/api/v1/todo_by_tag/")
+@app.get("/api/v1/todo_by_tag")
 async def api_todo_by_tag(tag: str, db: db_dependency):
     try:
         result = await get_todo_by_tag(tag, db)
@@ -62,7 +62,7 @@ async def api_todo_by_tag(tag: str, db: db_dependency):
     return result
 
 
-@app.get("/api/v1/todo_by_user/")
+@app.get("/api/v1/todo_by_user")
 async def api_todo_by_user(user_id: int, db: db_dependency):
     try:
         result = await get_todo_by_user(user_id, db)
@@ -73,7 +73,7 @@ async def api_todo_by_user(user_id: int, db: db_dependency):
     return result
 
 
-@app.put("/api/v1/user/")
+@app.put("/api/v1/user")
 async def api_update_user(user_changes: ValidUserChanges, db: db_dependency):
     try:
         await update_user(user_changes, db)
@@ -87,7 +87,7 @@ async def api_update_user(user_changes: ValidUserChanges, db: db_dependency):
         raise HTTPException(500)
 
 
-@app.put("/api/v1/todo/")
+@app.put("/api/v1/todo")
 async def api_update_todo(todo_changes: ValidTodoChanges, db: db_dependency):
     try:
         await update_todo(todo_changes, db)
@@ -97,23 +97,23 @@ async def api_update_todo(todo_changes: ValidTodoChanges, db: db_dependency):
         raise HTTPException(500)
     
 
-@app.delete("/api/v1/user/")
+@app.delete("/api/v1/user")
 async def api_delete_user(user_id: int, db: db_dependency):
     try:
         await delete_user(user_id, db)
     except UserNotFound as e:
-        HTTPException(404, "User not found")
+        raise HTTPException(404, "User not found")
     except Exception as e:
         raise HTTPException(500)
 
 
-@app.delete("/api/v1/todo/")
+@app.delete("/api/v1/todo")
 async def api_delete_todo(todo_id: int, db: db_dependency):
     # import ipdb; ipdb.set_trace()
     try:
         await delete_todo(todo_id, db)
     except TodoNotFound as e:
-        HTTPException(404, str(e))
+        raise HTTPException(404, str(e))
     except Exception as e:
         raise HTTPException(500)
 
