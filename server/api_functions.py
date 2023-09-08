@@ -1,11 +1,20 @@
-from database import db_dependency
-from validation_models import ValidUser, ValidTodo, ValidUserChanges, ValidTodoChanges
-from database_models import Users, Todos, UserTodoRelations
-from email_validator import validate_email, EmailNotValidError
-from exceptions import InvalidEmail, UsersDatabaseError, TodosDatabaseError, UserTodoRelationsDatabaseError, NameAlreadyExists, UserNotFound, TodoNotFound
+from email_validator import EmailNotValidError, validate_email
+from sqlalchemy import delete, select, update
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import select, update, delete
+
 from consts import RESULT_PER_QUERY
+from database import db_dependency
+from database_models import Todos, Users, UserTodoRelations
+from exceptions import (
+    InvalidEmail,
+    NameAlreadyExists,
+    TodoNotFound,
+    TodosDatabaseError,
+    UserNotFound,
+    UsersDatabaseError,
+    UserTodoRelationsDatabaseError,
+)
+from validation_models import ValidTodo, ValidTodoChanges, ValidUser, ValidUserChanges
 
 
 async def email_validate(email: str):
@@ -31,10 +40,7 @@ async def create_user(user: ValidUser, db: db_dependency):
     :raises UsersDatabaseError: if there is User table error
     """
     await email_validate(user.mail)
-    db_user = Users(
-        name= user.name,
-        password= user.password,
-        mail= user.mail)
+    db_user = Users(name=user.name, password=user.password, mail=user.mail)
     try:
         db.add(db_user)
         db.commit()
@@ -56,29 +62,25 @@ async def create_todo(todo: ValidTodo, db: db_dependency):
     """
     # add to todo table
     db_todo = Todos(
-        title= todo.title,
-        description= todo.description,
-        priority= todo.priority,
-        deadline= todo.deadline,
-        reminder= todo.reminder,
-        tags= todo.tags,
-        creator= todo.creator
+        title=todo.title,
+        description=todo.description,
+        priority=todo.priority,
+        deadline=todo.deadline,
+        reminder=todo.reminder,
+        tags=todo.tags,
+        creator=todo.creator,
     )
     try:
         db.add(db_todo)
         db.flush()
         db.refresh(db_todo)
-    except IntegrityError as e:
+    except IntegrityError:
         raise UserNotFound(f"creator not found: {todo.creator}")
     except Exception as e:
         raise TodosDatabaseError(str(e))
-    
-    
+
     # add to user_todo_relations table
-    db_relations = UserTodoRelations(
-        user_id=db_todo.creator,
-        todo_id=db_todo.id
-    )
+    db_relations = UserTodoRelations(user_id=db_todo.creator, todo_id=db_todo.id)
     try:
         db.add(db_relations)
         db.commit()
@@ -96,7 +98,7 @@ async def is_empty(result, exception: Exception = Exception, err_msg: str = "err
     :raises exception: given exception if empty
     :return: result if not empty
     """
-    if (result is None):
+    if result is None:
         raise exception(err_msg)
     if (type(result) is list) and not result:
         raise exception(err_msg)
@@ -138,7 +140,9 @@ async def get_todo_by_tag(tag: str, db: db_dependency):
     :raises TodoNotFound: if the todo id not found
     :return: list of todos objects
     """
-    statemant = db.execute(select(Todos).where(Todos.tags.contains(f'{{{tag}}}'))).fetchmany(RESULT_PER_QUERY)
+    statemant = db.execute(
+        select(Todos).where(Todos.tags.contains(f"{{{tag}}}"))
+    ).fetchmany(RESULT_PER_QUERY)
     result = [todo_tuple[0] for todo_tuple in statemant]
     return await is_empty(result, TodoNotFound, "todo not found")
 
@@ -152,7 +156,11 @@ async def get_todo_by_user(user_id: int, db: db_dependency):
     :raises TodoNotFound: if the todo id not found
     :return: _description_
     """
-    statemant = db.execute(select(Todos).join(UserTodoRelations).where(UserTodoRelations.user_id == user_id)).fetchmany(RESULT_PER_QUERY)
+    statemant = db.execute(
+        select(Todos)
+        .join(UserTodoRelations)
+        .where(UserTodoRelations.user_id == user_id)
+    ).fetchmany(RESULT_PER_QUERY)
     result = [todo_tuple[0] for todo_tuple in statemant]
     return await is_empty(result, TodoNotFound, "todo not found")
 
@@ -168,7 +176,7 @@ async def clean_changes(raw_changes: dict) -> dict:
     """
     changes = {}
     for key, value in raw_changes.items():
-        if (value is not None) and (key != 'id'):
+        if (value is not None) and (key != "id"):
             changes[key] = value
     return changes
 
@@ -184,22 +192,24 @@ async def update_user(user_changes: ValidUserChanges, db: db_dependency):
     :raises UserNotFound: if the user id not found
     """
     user_changes_clean = await clean_changes(user_changes.model_dump())
-    email = user_changes_clean.get('mail')
+    email = user_changes_clean.get("mail")
     if email is not None:
         await email_validate(email)
-    
-    statemant = update(Users).where(Users.id == user_changes.id).values(user_changes_clean)
+
+    statemant = (
+        update(Users).where(Users.id == user_changes.id).values(user_changes_clean)
+    )
     try:
         result = db.execute(statemant)
         db.commit()
-    except IntegrityError as e:
+    except IntegrityError:
         raise NameAlreadyExists()
     except Exception as e:
         raise UsersDatabaseError(str(e))
     if result.rowcount == 0:
         raise UserNotFound()
     if result.rowcount < 0:
-        raise UsersDatabaseError(str(e))
+        raise UsersDatabaseError("row count < 0")
 
 
 async def update_todo(todo_changes: ValidTodoChanges, db: db_dependency):
@@ -212,7 +222,9 @@ async def update_todo(todo_changes: ValidTodoChanges, db: db_dependency):
     :raises TodoNotFound: if the todo id not found
     """
     todo_changes_clean = await clean_changes(todo_changes.model_dump())
-    statemant = update(Todos).where(Todos.id == todo_changes.id).values(todo_changes_clean)
+    statemant = (
+        update(Todos).where(Todos.id == todo_changes.id).values(todo_changes_clean)
+    )
     try:
         result = db.execute(statemant)
         db.commit()
@@ -221,7 +233,7 @@ async def update_todo(todo_changes: ValidTodoChanges, db: db_dependency):
     if result.rowcount == 0:
         raise TodoNotFound("Todo not found")
     if result.rowcount < 0:
-        raise TodosDatabaseError(str(e))
+        raise TodosDatabaseError("row count < 0")
 
 
 async def delete_relations_by_user(user_id: int, db: db_dependency):
@@ -236,9 +248,9 @@ async def delete_relations_by_user(user_id: int, db: db_dependency):
     try:
         db.execute(statement)
         db.flush()
-    except Exception as e:
+    except Exception:
         raise UsersDatabaseError
-    
+
 
 async def delete_todo_by_user(user_id: int, db: db_dependency):
     """
@@ -252,9 +264,9 @@ async def delete_todo_by_user(user_id: int, db: db_dependency):
     try:
         db.execute(statement)
         db.flush()
-    except Exception as e:
+    except Exception:
         raise TodosDatabaseError
-    
+
 
 async def delete_from_users(user_id: int, db: db_dependency):
     """
@@ -269,12 +281,12 @@ async def delete_from_users(user_id: int, db: db_dependency):
     try:
         result = db.execute(statement)
         db.commit()
-    except Exception as e:
+    except Exception:
         raise UsersDatabaseError
     if result.rowcount == 0:
         raise UserNotFound("User not found")
     if result.rowcount < 0:
-        raise UsersDatabaseError(str(e))
+        raise UsersDatabaseError("row count < 0")
 
 
 async def delete_user(user_id: int, db: db_dependency):
@@ -302,12 +314,12 @@ async def delete_relations_by_todo(todo_id: int, db: db_dependency):
     try:
         result = db.execute(statement)
         db.flush()
-    except Exception as e:
+    except Exception:
         raise TodosDatabaseError()
     if result.rowcount == 0:
         raise TodoNotFound("Todo not found")
     if result.rowcount < 0:
-        raise TodosDatabaseError(str(e))
+        raise TodosDatabaseError("row count < 0")
 
 
 async def delete_from_todos(todo_id: int, db: db_dependency):
@@ -323,12 +335,12 @@ async def delete_from_todos(todo_id: int, db: db_dependency):
     try:
         result = db.execute(statement)
         db.commit()
-    except Exception as e:
+    except Exception:
         raise TodosDatabaseError()
     if result.rowcount == 0:
         raise TodoNotFound("Todo not found")
     if result.rowcount < 0:
-        raise TodosDatabaseError(str(e))
+        raise TodosDatabaseError("row count < 0")
 
 
 async def delete_todo(todo_id: int, db: db_dependency):

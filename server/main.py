@@ -1,8 +1,20 @@
 from fastapi import FastAPI, HTTPException
-from validation_models import ValidUser, ValidTodo, ValidUserChanges, ValidTodoChanges
-from api_functions import create_user, create_todo, get_user_info, get_todo_info, get_todo_by_tag, get_todo_by_user, update_user, update_todo, delete_user, delete_todo
-from exceptions import InvalidEmail, NameAlreadyExists, UserNotFound, TodoNotFound
+
+from api_functions import (
+    create_todo,
+    create_user,
+    delete_todo,
+    delete_user,
+    get_todo_by_tag,
+    get_todo_by_user,
+    get_todo_info,
+    get_user_info,
+    update_todo,
+    update_user,
+)
 from database import db_dependency
+from exceptions import InvalidEmail, NameAlreadyExists, TodoNotFound, UserNotFound
+from validation_models import ValidTodo, ValidTodoChanges, ValidUser, ValidUserChanges
 
 app = FastAPI(debug=True)
 
@@ -20,13 +32,13 @@ async def api_create_user(user: ValidUser, db: db_dependency):
     """
     try:
         await create_user(user, db)
-    except InvalidEmail as e:
+    except InvalidEmail:
         raise HTTPException(400, detail=f"invalid Email: {user.mail}")
-    except NameAlreadyExists as e:
+    except NameAlreadyExists:
         raise HTTPException(400, detail=f"name already exist: {user.name}")
-    except Exception as e:
+    except Exception:
         raise HTTPException(500)
-    
+
 
 @app.post("/api/v1/todo")
 async def api_create_todo(todo: ValidTodo, db: db_dependency):
@@ -42,7 +54,7 @@ async def api_create_todo(todo: ValidTodo, db: db_dependency):
         await create_todo(todo, db)
     except UserNotFound as e:
         raise HTTPException(404, str(e))
-    except Exception as e:
+    except Exception:
         raise HTTPException(500)
 
 
@@ -61,7 +73,7 @@ async def api_user_info(user_id: int, db: db_dependency):
         result = await get_user_info(user_id, db)
     except UserNotFound as e:
         raise HTTPException(404, str(e))
-    except Exception as e:
+    except Exception:
         raise HTTPException(500)
     return result
 
@@ -81,7 +93,7 @@ async def api_todo_info(todo_id: int, db: db_dependency):
         result = await get_todo_info(todo_id, db)
     except TodoNotFound as e:
         raise HTTPException(404, str(e))
-    except Exception as e:
+    except Exception:
         raise HTTPException(500)
     return result
 
@@ -95,13 +107,13 @@ async def api_todo_by_tag(tag: str, db: db_dependency):
     :param db: db connection
     :raises HTTPException: error 404 if todo not found
     :raises HTTPException: error 500 for other
-    :return: info of the todos that are tagged with the given tag  
+    :return: info of the todos that are tagged with the given tag
     """
     try:
         result = await get_todo_by_tag(tag, db)
     except TodoNotFound as e:
         raise HTTPException(404, str(e))
-    except Exception as e:
+    except Exception:
         raise HTTPException(500)
     return result
 
@@ -121,7 +133,7 @@ async def api_todo_by_user(user_id: int, db: db_dependency):
         result = await get_todo_by_user(user_id, db)
     except TodoNotFound as e:
         raise HTTPException(404, str(e))
-    except Exception as e:
+    except Exception:
         raise HTTPException(500)
     return result
 
@@ -140,13 +152,13 @@ async def api_update_user(user_changes: ValidUserChanges, db: db_dependency):
     """
     try:
         await update_user(user_changes, db)
-    except InvalidEmail as e:
+    except InvalidEmail:
         raise HTTPException(400, detail=f"invalid Email: {user_changes.mail}")
-    except NameAlreadyExists as e:
+    except NameAlreadyExists:
         raise HTTPException(400, detail=f"name already exist: {user_changes.name}")
     except UserNotFound as e:
         raise HTTPException(404, str(e))
-    except Exception as e:
+    except Exception:
         raise HTTPException(500)
 
 
@@ -164,9 +176,9 @@ async def api_update_todo(todo_changes: ValidTodoChanges, db: db_dependency):
         await update_todo(todo_changes, db)
     except TodoNotFound as e:
         raise HTTPException(404, str(e))
-    except Exception as e:
+    except Exception:
         raise HTTPException(500)
-    
+
 
 @app.delete("/api/v1/user")
 async def api_delete_user(user_id: int, db: db_dependency):
@@ -180,9 +192,9 @@ async def api_delete_user(user_id: int, db: db_dependency):
     """
     try:
         await delete_user(user_id, db)
-    except UserNotFound as e:
+    except UserNotFound:
         raise HTTPException(404, "User not found")
-    except Exception as e:
+    except Exception:
         raise HTTPException(500)
 
 
@@ -200,7 +212,7 @@ async def api_delete_todo(todo_id: int, db: db_dependency):
         await delete_todo(todo_id, db)
     except TodoNotFound as e:
         raise HTTPException(404, str(e))
-    except Exception as e:
+    except Exception:
         raise HTTPException(500)
 
 
