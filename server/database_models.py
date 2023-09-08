@@ -5,6 +5,9 @@ from database import base
 
 
 class Users(base):
+    """
+    Users table ORM
+    """
     __tablename__ = 'users'
 
     id = Column("id", Integer, primary_key=True, nullable=False, index=True)
@@ -14,6 +17,9 @@ class Users(base):
 
 
 class Todos(base):
+    """
+    Todos table ORM
+    """
     __tablename__ = 'todos'
 
     id = Column("id", Integer, primary_key=True, nullable=False, index=True)
@@ -28,6 +34,9 @@ class Todos(base):
 
 
 class UserTodoRelations(base):
+    """
+    UserTodoRelations table ORM
+    """
     __tablename__ = 'user_todo_relation'
 
     user_id = Column("user_id", Integer, ForeignKey("users.id"), nullable=False, primary_key=True)

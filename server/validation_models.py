@@ -5,13 +5,18 @@ from datetime import date, datetime
 
 
 class ValidUser(BaseModel):
-    id: int
+    """
+    User validation object. fields for creating a user.
+    """
     name: str
     password: str
     mail: str
 
 
 class ValidUserChanges(BaseModel):
+    """
+    User changes validation object. fields for changing a user.
+    """
     id: int
     name: str | None
     password: str | None
@@ -19,6 +24,9 @@ class ValidUserChanges(BaseModel):
 
 
 class ValidTodo(BaseModel):
+    """
+    Todo validation object. fields for creating a todo.
+    """
     id: int
     title: str
     description: str | None
@@ -31,6 +39,9 @@ class ValidTodo(BaseModel):
 
 
 class ValidTodoChanges(BaseModel):
+    """
+    Todo changes validation object. fields for changing a todo.
+    """
     id: int
     title: str | None
     description: str | None
@@ -39,9 +50,3 @@ class ValidTodoChanges(BaseModel):
     reminder: datetime | None
     status: Status | None
     tags: List[str] | None
-
-
-class ValidUserTodoRelation(BaseModel):
-    user_id: int
-    todo_id: int
-
