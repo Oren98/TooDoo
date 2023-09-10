@@ -4,8 +4,7 @@ from fastapi import Depends
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, sessionmaker
-
-URL_DATABASE = "postgresql://postgres:1234@localhost:5432/toodooDB"
+from consts import URL_DATABASE
 
 engine = create_engine(URL_DATABASE)
 
