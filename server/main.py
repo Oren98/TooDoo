@@ -14,9 +14,8 @@ from api_functions import (
 )
 from database import db_dependency
 from exceptions import InvalidEmail, NameAlreadyExists, TodoNotFound, UserNotFound
-from validation_models import ValidTodo, ValidTodoChanges, ValidUser, ValidUserChanges
 from logger import logger
-
+from validation_models import ValidTodo, ValidTodoChanges, ValidUser, ValidUserChanges
 
 app = FastAPI(debug=True)
 
@@ -145,7 +144,9 @@ async def api_todo_by_user(user_id: int, db: db_dependency):
     try:
         result = await get_todo_by_user(user_id, db)
     except TodoNotFound as e:
-        logger.error(f"not todo found that it is connected with this user, user id = {user_id}, raising 404")
+        logger.error(
+            f"not todo found that it is connected with this user, user id = {user_id}, raising 404"
+        )
         raise HTTPException(404, str(e))
     except Exception as e:
         logger.exception(str(e))

@@ -14,8 +14,8 @@ from exceptions import (
     UsersDatabaseError,
     UserTodoRelationsDatabaseError,
 )
-from validation_models import ValidTodo, ValidTodoChanges, ValidUser, ValidUserChanges
 from logger import logger
+from validation_models import ValidTodo, ValidTodoChanges, ValidUser, ValidUserChanges
 
 
 async def email_validate(email: str):
@@ -87,7 +87,7 @@ async def create_todo(todo: ValidTodo, db: db_dependency):
         raise UserNotFound(f"creator not found: {todo.creator}")
     except Exception as e:
         raise TodosDatabaseError(str(e))
-    
+
     # add to user_todo_relations table
     logger.debug("creating realtions object")
     db_relations = UserTodoRelations(user_id=db_todo.creator, todo_id=db_todo.id)
@@ -183,7 +183,11 @@ async def get_todo_by_user(user_id: int, db: db_dependency):
     """
     logger.info("retrieving todo by user")
     logger.debug("creating statement")
-    statemant = select(Todos).join(UserTodoRelations).where(UserTodoRelations.user_id == user_id)
+    statemant = (
+        select(Todos)
+        .join(UserTodoRelations)
+        .where(UserTodoRelations.user_id == user_id)
+    )
     logger.debug("executing statement")
     statemant_execute = db.execute(statemant).fetchmany(RESULT_PER_QUERY)
     result = [todo_tuple[0] for todo_tuple in statemant_execute]
@@ -402,7 +406,7 @@ async def delete_from_todos(todo_id: int, db: db_dependency):
     if result.rowcount < 0:
         raise TodosDatabaseError("row count < 0")
     logger.debug("deleted from todos table")
-    
+
 
 async def delete_todo(todo_id: int, db: db_dependency):
     """
