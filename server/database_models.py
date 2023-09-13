@@ -30,12 +30,12 @@ class Todos(base):
     description = Column("description", Text)
     deadline = Column("deadline", Date, nullable=False)
     priority = Column(
-        "priority", Enum(Priority), nullable=False, default=Priority.medium
+        "priority", Enum(Priority), nullable=False, default=Priority.MEDIUM
     )
     reminder = Column("reminder", DateTime)
     tags = Column("tags", ARRAY(String, dimensions=1))
     creator = Column("creator", Integer, ForeignKey("users.id"), nullable=False)
-    status = Column("status", Enum(Status), nullable=False, default=Status.ready)
+    status = Column("status", Enum(Status), nullable=False, default=Status.READY)
 
 
 class UserTodoRelations(base):

@@ -1,6 +1,10 @@
 from loguru import logger
 
+from configuration import configuration
+
 logger.remove(0)
 logger.add(
-    "logs\\log_{time}.log", rotation="100 MB", format="{time} | {level} | {message}"
+    configuration.log_file_path,
+    rotation=configuration.log_rotation_size,
+    format=configuration.log_format,
 )

@@ -2,7 +2,7 @@ from email_validator import EmailNotValidError, validate_email
 from sqlalchemy import delete, select, update
 from sqlalchemy.exc import IntegrityError
 
-from consts import RESULT_PER_QUERY
+from configuration import configuration
 from database import db_dependency
 from database_models import Todos, Users, UserTodoRelations
 from exceptions import (
@@ -164,7 +164,7 @@ async def get_todo_by_tag(tag: str, db: db_dependency):
     logger.debug("creating statement")
     statemant = select(Todos).where(Todos.tags.contains(f"{{{tag}}}"))
     logger.debug("executing statement")
-    statemant_execute = db.execute(statemant).fetchmany(RESULT_PER_QUERY)
+    statemant_execute = db.execute(statemant).fetchmany(configuration.results_per_query)
     result = [todo_tuple[0] for todo_tuple in statemant_execute]
     logger.debug("checking result")
     checked_result = await is_empty(result, TodoNotFound, "todo not found")
@@ -189,7 +189,7 @@ async def get_todo_by_user(user_id: int, db: db_dependency):
         .where(UserTodoRelations.user_id == user_id)
     )
     logger.debug("executing statement")
-    statemant_execute = db.execute(statemant).fetchmany(RESULT_PER_QUERY)
+    statemant_execute = db.execute(statemant).fetchmany(configuration.results_per_query)
     result = [todo_tuple[0] for todo_tuple in statemant_execute]
     logger.debug("checking result")
     checked_result = await is_empty(result, TodoNotFound, "todo not found")

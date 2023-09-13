@@ -24,3 +24,7 @@ class UserNotFound(Exception):
 
 class TodoNotFound(Exception):
     pass
+
+
+class DBSetupFailure(Exception):
+    pass

@@ -5,13 +5,15 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, sessionmaker
 
-from consts import URL_DATABASE
+from configuration import configuration
+from exceptions import DBSetupFailure
 
-engine = create_engine(URL_DATABASE)
-
-session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-base = declarative_base()
+try:
+    engine = create_engine(configuration.database_url)
+    session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    base = declarative_base()
+except Exception as e:
+    raise DBSetupFailure(str(e))
 
 
 def get_db():
