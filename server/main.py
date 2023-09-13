@@ -17,6 +17,9 @@ from exceptions import InvalidEmail, NameAlreadyExists, TodoNotFound, UserNotFou
 from logger import logger
 from validation_models import ValidTodo, ValidTodoChanges, ValidUser, ValidUserChanges
 
+# from configuration import validate_config
+
+
 app = FastAPI(debug=True)
 
 

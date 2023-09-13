@@ -28,3 +28,7 @@ class TodoNotFound(Exception):
 
 class DBSetupFailure(Exception):
     pass
+
+
+class ConfigurationError(Exception):
+    pass
