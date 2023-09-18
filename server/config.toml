@@ -1,0 +1,13 @@
+[database]
+results_per_query = 100
+database_url = ""
+
+[database_tables]
+users_table_name = "users"
+todos_table_name = "todos"
+userstodosrelations_table_name = "user_todo_relation"
+
+[logger]
+log_file_path = "logs\\log_{time}.log"
+log_rotation_size = "100 MB"
+log_format = "{time} | {level} | {message}"
